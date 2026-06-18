@@ -1,0 +1,12 @@
+{
+  "name": "bnb-track2-skill-starter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "strategy": "bun run skill/scripts/generate-strategy.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
