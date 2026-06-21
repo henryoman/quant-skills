@@ -3,8 +3,6 @@ name: ohlcv-alpha-research
 description: |
   Build, audit, and interpret instrument-agnostic OHLCV alpha research workflows using only timestamp, open, high, low, close, and volume data. Use for anomaly discovery, past-only feature engineering, event studies, forward targets, MFE/MAE, triple-barrier logic, regime splits, threshold robustness, walk-forward validation, cost stress, and candidate alpha dossiers. Trigger when users ask to research OHLCV alpha, test candle/volume/range anomalies, validate a trading rule, or convert raw OHLCV bars into a disciplined quant research report.
 license: MIT
-compatibility: ">=1.0.0"
-user-invocable: true
 allowed-tools:
   - Bash
   - Read
@@ -44,7 +42,7 @@ Every feature, threshold, rolling statistic, regime label, signal, and rule must
 ## Script Usage
 
 ```bash
-python3 alpha-gen/ohlcv-alpha-research/scripts/ohlcv_research_engine.py \
+python3 alpha-gen-skills/ohlcv-alpha-research/scripts/ohlcv_research_engine.py \
   --input path/to/ohlcv.csv \
   --output-dir research-output \
   --timestamp-col timestamp
@@ -54,7 +52,7 @@ If the local Python environment does not already have `pandas` and `numpy`, run 
 
 ```bash
 uv run --with pandas --with numpy \
-  alpha-gen/ohlcv-alpha-research/scripts/ohlcv_research_engine.py \
+  alpha-gen-skills/ohlcv-alpha-research/scripts/ohlcv_research_engine.py \
   --input path/to/ohlcv.csv \
   --output-dir research-output
 ```
@@ -69,6 +67,9 @@ The script writes:
 - `threshold_sweeps.csv`
 - `cost_stress.csv`
 - `candidate_report.md`
+- `candidate_report.html`
+
+Open `candidate_report.html` first. It summarizes what is right, what needs review, generated files, strongest exploratory rows, threshold sweep preview, cost-stress preview, and required next actions.
 
 ## Interpretation Rules
 

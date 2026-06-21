@@ -16,6 +16,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from reporting import write_html_report
+
 SPOT_BASE = "https://api.binance.com"
 USD_M_FUTURES_BASE = "https://fapi.binance.com"
 
@@ -202,6 +204,62 @@ def write_clean(path: Path, rows: list[dict[str, object]]) -> None:
         writer.writerows(rows)
 
 
+def kline_checks(symbol: str, rows: list[dict[str, object]], include_open_candle: bool) -> list[dict[str, object]]:
+    checks: list[dict[str, object]] = [
+        {
+            "status": "pass" if rows else "fail",
+            "name": f"{symbol} clean rows",
+            "detail": f"{len(rows)} rows after cleaning.",
+        }
+    ]
+    timestamps = [int(row["open_time_ms"]) for row in rows]
+    duplicate_count = len(timestamps) - len(set(timestamps))
+    checks.append(
+        {
+            "status": "pass" if duplicate_count == 0 else "warn",
+            "name": f"{symbol} duplicate timestamps",
+            "detail": f"{duplicate_count} duplicate open_time_ms values.",
+        }
+    )
+    sorted_ok = timestamps == sorted(timestamps)
+    checks.append(
+        {
+            "status": "pass" if sorted_ok else "fail",
+            "name": f"{symbol} timestamp order",
+            "detail": "Rows are sorted ascending." if sorted_ok else "Rows are not sorted ascending.",
+        }
+    )
+    open_candles = sum(1 for row in rows if str(row["is_closed"]).lower() != "true")
+    checks.append(
+        {
+            "status": "warn" if open_candles and include_open_candle else "pass",
+            "name": f"{symbol} open candle handling",
+            "detail": f"{open_candles} open candles included." if open_candles else "No open candles included.",
+        }
+    )
+    bad_bars = 0
+    for row in rows:
+        try:
+            open_ = float(row["open"])
+            high = float(row["high"])
+            low = float(row["low"])
+            close = float(row["close"])
+            volume = float(row["volume"])
+        except (TypeError, ValueError):
+            bad_bars += 1
+            continue
+        if min(open_, high, low, close) <= 0 or volume < 0 or high < max(open_, close, low) or low > min(open_, close, high):
+            bad_bars += 1
+    checks.append(
+        {
+            "status": "pass" if bad_bars == 0 else "fail",
+            "name": f"{symbol} OHLCV structure",
+            "detail": f"{bad_bars} invalid bars.",
+        }
+    )
+    return checks
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Download Binance public klines and write raw + clean CSV files.")
     parser.add_argument("--market", choices=["spot", "usd_m_futures"], required=True)
@@ -211,6 +269,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end", required=True, help="UTC end date YYYY-MM-DD, exclusive")
     parser.add_argument("--output-dir", default="data/market/binance")
     parser.add_argument("--include-open-candle", action="store_true")
+    parser.add_argument("--report", help="Output HTML report path. Defaults to <output-dir>/reports/binance_klines_report.html.")
     return parser.parse_args()
 
 
@@ -224,6 +283,13 @@ def main() -> int:
     interval_to_ms(args.interval)
 
     output_dir = Path(args.output_dir)
+    report_path = Path(args.report) if args.report else output_dir / "reports" / "binance_klines_report.html"
+    checks: list[dict[str, object]] = [
+        {"status": "pass", "name": "Market", "detail": args.market},
+        {"status": "pass", "name": "Interval", "detail": args.interval},
+        {"status": "pass", "name": "Date range", "detail": f"{args.start} to {args.end}, end exclusive."},
+    ]
+    outputs: list[dict[str, object]] = []
     for symbol in [value.upper() for value in args.symbols]:
         rows = fetch_klines(args.market, symbol, args.interval, start_ms, end_ms)
         raw_path = output_dir / "raw" / args.market / symbol / f"{args.interval}.csv"
@@ -238,8 +304,31 @@ def main() -> int:
             include_open_candle=args.include_open_candle,
         )
         write_clean(clean_path, cleaned)
+        checks.extend(kline_checks(symbol, cleaned, args.include_open_candle))
+        first_ts = cleaned[0]["open_time"] if cleaned else "no rows"
+        last_ts = cleaned[-1]["open_time"] if cleaned else "no rows"
+        outputs.extend(
+            [
+                {"name": f"{symbol} raw klines", "path": raw_path, "detail": f"{len(rows)} source rows."},
+                {"name": f"{symbol} clean klines", "path": clean_path, "detail": f"{len(cleaned)} rows, {first_ts} to {last_ts}."},
+            ]
+        )
         print(f"{symbol}: raw={raw_path} clean={clean_path} rows={len(cleaned)}")
 
+    outputs.append({"name": "HTML report", "path": report_path, "detail": "Static Binance kline download audit."})
+    write_html_report(
+        report_path,
+        title="Binance Klines Download Report",
+        summary=f"{args.market} {args.interval} klines for {', '.join(value.upper() for value in args.symbols)}.",
+        checks=checks,
+        outputs=outputs,
+        notes=[
+            "Use clean files for backtests; keep raw files for reproducibility.",
+            "Warnings on included open candles are expected only when --include-open-candle is intentional.",
+            "If any symbol has zero rows, check symbol availability, market type, and date range.",
+        ],
+    )
+    print(f"report={report_path}")
     return 0
 
 

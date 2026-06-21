@@ -48,6 +48,8 @@ Recommended order:
 
 Data-source selection, API key setup, and `.env` templates belong in `start-here/`. Repeatable Binance download/clean pipelines live in `alpha-gen-skills/data-download-clean/`. Downstream alpha-generation skills should consume normalized data and focus on research.
 
+Every runnable step should produce a static HTML report alongside its data outputs. The report is the first file a user or follow-on agent should inspect. It must say what is right, what needs review, what is wrong, which files were written, and the required next action.
+
 ## OHLCV-Only Alpha Discovery Framework
 
 ### Main Objective
@@ -76,6 +78,8 @@ Useful OHLCV alpha can be:
 - `regime-specific`: the effect only appears in trend, chop, compression, or expansion.
 
 The output should be a ranked set of anomalies with evidence.
+
+When a script generates the evidence, it should write both machine-readable files and a human-readable HTML report.
 
 ### Core Acceptance Rule
 

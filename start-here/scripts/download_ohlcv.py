@@ -19,6 +19,8 @@ import urllib.request
 from pathlib import Path
 from typing import Iterable
 
+from reporting import write_html_report
+
 UTC = dt.timezone.utc
 
 BINANCE_INTERVAL_MS = {
@@ -219,6 +221,55 @@ def write_csv(rows: list[dict[str, object]], output: Path) -> None:
         writer.writerows(rows)
 
 
+def validate_rows(rows: list[dict[str, object]]) -> list[dict[str, object]]:
+    checks: list[dict[str, object]] = []
+    checks.append(
+        {
+            "status": "pass" if rows else "fail",
+            "name": "Rows downloaded",
+            "detail": f"{len(rows)} normalized OHLCV rows.",
+        }
+    )
+    timestamps = [str(row["timestamp"]) for row in rows]
+    duplicate_count = len(timestamps) - len(set(timestamps))
+    checks.append(
+        {
+            "status": "pass" if duplicate_count == 0 else "warn",
+            "name": "Duplicate timestamps",
+            "detail": f"{duplicate_count} duplicates after de-duplication.",
+        }
+    )
+    sorted_ok = timestamps == sorted(timestamps)
+    checks.append(
+        {
+            "status": "pass" if sorted_ok else "fail",
+            "name": "Timestamp order",
+            "detail": "Rows are sorted ascending by timestamp." if sorted_ok else "Rows are not sorted ascending.",
+        }
+    )
+    bad_bars = 0
+    for row in rows:
+        try:
+            open_ = float(row["open"])
+            high = float(row["high"])
+            low = float(row["low"])
+            close = float(row["close"])
+            volume = float(row["volume"])
+        except (TypeError, ValueError):
+            bad_bars += 1
+            continue
+        if min(open_, high, low, close) <= 0 or volume < 0 or high < max(open_, close, low) or low > min(open_, close, high):
+            bad_bars += 1
+    checks.append(
+        {
+            "status": "pass" if bad_bars == 0 else "fail",
+            "name": "OHLCV structure",
+            "detail": f"{bad_bars} rows have invalid prices, volume, or high/low structure.",
+        }
+    )
+    return checks
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Download normalized OHLCV CSV data.")
     parser.add_argument("--provider", required=True, choices=["binance", "coinbase", "kraken", "polygon"])
@@ -227,6 +278,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start", help="UTC start date/time, e.g. 2024-01-01 or 2024-01-01T00:00:00Z.")
     parser.add_argument("--end", help="UTC end date/time. Defaults to now for public providers.")
     parser.add_argument("--output", required=True, help="Output CSV path.")
+    parser.add_argument("--report", help="Output HTML report path. Defaults to <output>.report.html.")
     return parser.parse_args()
 
 
@@ -247,8 +299,38 @@ def main() -> int:
         raise SystemExit(f"Unsupported provider: {args.provider}")
 
     rows = sorted(unique_rows(rows), key=lambda row: row["timestamp"])
-    write_csv(rows, Path(args.output))
+    output = Path(args.output)
+    report_path = Path(args.report) if args.report else output.with_name(output.name + ".report.html")
+    write_csv(rows, output)
+    checks = [
+        {"status": "pass", "name": "Provider", "detail": f"{args.provider} selected for {args.symbol}."},
+        {"status": "pass", "name": "Interval", "detail": f"Requested interval: {args.interval}."},
+        {
+            "status": "pass" if not start or not end or end > start else "fail",
+            "name": "Date range",
+            "detail": f"start={start.isoformat() if start else 'provider default'} end={end.isoformat() if end else 'now/default'}",
+        },
+        *validate_rows(rows),
+        {"status": "pass" if output.exists() else "fail", "name": "CSV output", "detail": f"Wrote {output}."},
+    ]
+    start_ts = rows[0]["timestamp"] if rows else "no rows"
+    end_ts = rows[-1]["timestamp"] if rows else "no rows"
+    write_html_report(
+        report_path,
+        title="OHLCV Download Report",
+        summary=f"{args.provider} {args.symbol} {args.interval}: {len(rows)} rows from {start_ts} to {end_ts}.",
+        checks=checks,
+        outputs=[
+            {"name": "Normalized OHLCV CSV", "path": output, "detail": "timestamp, open, high, low, close, volume"},
+            {"name": "HTML report", "path": report_path, "detail": "Static download and data-quality audit."},
+        ],
+        notes=[
+            "If row count is low, confirm the provider symbol format and date range.",
+            "Feed this CSV into ohlcv-alpha-research only after all checks are Right or understood.",
+        ],
+    )
     print(f"Wrote {len(rows)} rows to {args.output}")
+    print(f"Wrote report {report_path}")
     return 0
 
 

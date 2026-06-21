@@ -21,6 +21,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from reporting import write_html_report
+
 BASE = "https://fapi.binance.com"
 MARKET = "usd_m_futures"
 
@@ -140,6 +142,29 @@ def write_csv(path: Path, columns: list[str], rows: list[dict[str, object]]) -> 
         writer.writerows(rows)
 
 
+def dataset_checks(symbol: str, dataset: str, rows: list[dict[str, object]], timestamp_key: str) -> list[dict[str, object]]:
+    timestamps = [int(row[timestamp_key]) for row in rows]
+    duplicate_count = len(timestamps) - len(set(timestamps))
+    sorted_ok = timestamps == sorted(timestamps)
+    return [
+        {
+            "status": "pass" if rows else "warn",
+            "name": f"{symbol} {dataset} rows",
+            "detail": f"{len(rows)} cleaned rows.",
+        },
+        {
+            "status": "pass" if duplicate_count == 0 else "warn",
+            "name": f"{symbol} {dataset} duplicates",
+            "detail": f"{duplicate_count} duplicate timestamps.",
+        },
+        {
+            "status": "pass" if sorted_ok else "fail",
+            "name": f"{symbol} {dataset} order",
+            "detail": "Rows are sorted ascending." if sorted_ok else "Rows are not sorted ascending.",
+        },
+    ]
+
+
 def clean_funding(symbol: str, rows: list[dict[str, object]]) -> list[dict[str, object]]:
     deduped: dict[int, dict[str, object]] = {}
     for row in rows:
@@ -199,6 +224,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start", required=True, help="UTC start date YYYY-MM-DD")
     parser.add_argument("--end", required=True, help="UTC end date YYYY-MM-DD, exclusive")
     parser.add_argument("--output-dir", default="data/market/binance")
+    parser.add_argument("--report", help="Output HTML report path. Defaults to <output-dir>/reports/binance_derivatives_report.html.")
     return parser.parse_args()
 
 
@@ -211,6 +237,13 @@ def main() -> int:
         return 2
 
     output_dir = Path(args.output_dir)
+    report_path = Path(args.report) if args.report else output_dir / "reports" / "binance_derivatives_report.html"
+    checks: list[dict[str, object]] = [
+        {"status": "pass", "name": "Market", "detail": MARKET},
+        {"status": "pass", "name": "Datasets", "detail": ", ".join(args.datasets)},
+        {"status": "pass", "name": "Date range", "detail": f"{args.start} to {args.end}, end exclusive."},
+    ]
+    outputs: list[dict[str, object]] = []
     for symbol in [value.upper() for value in args.symbols]:
         if "funding_rates" in args.datasets:
             raw = fetch_funding(symbol, start_ms, end_ms)
@@ -219,6 +252,13 @@ def main() -> int:
             clean_path = output_dir / "clean" / MARKET / "funding_rates" / symbol / "funding_rates.csv"
             write_raw_jsonl(raw_path, raw)
             write_csv(clean_path, FUNDING_COLUMNS, clean)
+            checks.extend(dataset_checks(symbol, "funding_rates", clean, "funding_time_ms"))
+            outputs.extend(
+                [
+                    {"name": f"{symbol} funding raw", "path": raw_path, "detail": f"{len(raw)} source rows."},
+                    {"name": f"{symbol} funding clean", "path": clean_path, "detail": f"{len(clean)} cleaned rows."},
+                ]
+            )
             print(f"{symbol} funding_rates: raw={raw_path} clean={clean_path} rows={len(clean)}")
 
         if "open_interest" in args.datasets:
@@ -228,6 +268,13 @@ def main() -> int:
             clean_path = output_dir / "clean" / MARKET / "open_interest" / symbol / f"{args.period}.csv"
             write_raw_jsonl(raw_path, raw)
             write_csv(clean_path, OPEN_INTEREST_COLUMNS, clean)
+            checks.extend(dataset_checks(symbol, "open_interest", clean, "timestamp_ms"))
+            outputs.extend(
+                [
+                    {"name": f"{symbol} open interest raw", "path": raw_path, "detail": f"{len(raw)} source rows."},
+                    {"name": f"{symbol} open interest clean", "path": clean_path, "detail": f"{len(clean)} cleaned rows."},
+                ]
+            )
             print(f"{symbol} open_interest: raw={raw_path} clean={clean_path} rows={len(clean)}")
 
         if "long_short_ratios" in args.datasets:
@@ -237,8 +284,29 @@ def main() -> int:
             clean_path = output_dir / "clean" / MARKET / "long_short_ratios" / symbol / f"{args.period}.csv"
             write_raw_jsonl(raw_path, raw)
             write_csv(clean_path, LONG_SHORT_COLUMNS, clean)
+            checks.extend(dataset_checks(symbol, "long_short_ratios", clean, "timestamp_ms"))
+            outputs.extend(
+                [
+                    {"name": f"{symbol} long/short raw", "path": raw_path, "detail": f"{len(raw)} source rows."},
+                    {"name": f"{symbol} long/short clean", "path": clean_path, "detail": f"{len(clean)} cleaned rows."},
+                ]
+            )
             print(f"{symbol} long_short_ratios: raw={raw_path} clean={clean_path} rows={len(clean)}")
 
+    outputs.append({"name": "HTML report", "path": report_path, "detail": "Static Binance derivatives download audit."})
+    write_html_report(
+        report_path,
+        title="Binance Derivatives Download Report",
+        summary=f"{MARKET} derivatives for {', '.join(value.upper() for value in args.symbols)}.",
+        checks=checks,
+        outputs=outputs,
+        notes=[
+            "Zero-row derivative datasets can happen for unavailable symbols or endpoint history limits.",
+            "Use funding and positioning data as features; do not mix them into OHLCV-only scans.",
+            "For long ranges, prefer cached local files after the first download.",
+        ],
+    )
+    print(f"report={report_path}")
     return 0
 
 

@@ -140,6 +140,14 @@ start-here/scripts/setup_env.py
 start-here/scripts/download_ohlcv.py
 ```
 
+Both scripts write a static HTML report by default:
+
+```text
+<output>.report.html
+```
+
+Open that report first. It shows what is right, what needs review, what is wrong, written files, and next actions.
+
 ### Provider routing
 
 Use this default routing:
@@ -187,6 +195,8 @@ python3 start-here/scripts/setup_env.py \
   --providers binance coinbase kraken polygon alpaca cmc \
   --output .env.alpha
 ```
+
+This also writes `.env.alpha.report.html`.
 
 Then load it as needed:
 
@@ -252,6 +262,8 @@ Every successful download should produce exactly:
 ```text
 timestamp,open,high,low,close,volume
 ```
+
+Every successful download also writes `<output>.report.html` with row count, timestamp order, duplicate checks, OHLCV-structure checks, output path, and next actions.
 
 Store provider metadata separately from the research CSV.
 

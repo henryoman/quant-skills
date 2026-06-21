@@ -13,7 +13,7 @@ This skill owns the first data layer for alpha-generation work:
 source data -> raw local files -> cleaned local files -> downstream backtest/features
 ```
 
-It does not design strategies, run portfolio analytics, or generate reports. Those should happen in later `alpha-gen` skills.
+It does not design strategies or run portfolio analytics. It does generate a static HTML audit report for every download/clean step so the user can see what is right, what needs review, what is wrong, and which files were written.
 
 ## What This Skill Downloads And Cleans
 
@@ -138,6 +138,12 @@ python3 alpha-gen-skills/data-download-clean/scripts/download_binance_klines.py 
   --output-dir data/market/binance
 ```
 
+Default report:
+
+```text
+data/market/binance/reports/binance_klines_report.html
+```
+
 Use `download_binance_derivatives.py` for futures funding, open interest, and long/short ratio:
 
 ```bash
@@ -150,12 +156,24 @@ python3 alpha-gen-skills/data-download-clean/scripts/download_binance_derivative
   --output-dir data/market/binance
 ```
 
+Default report:
+
+```text
+data/market/binance/reports/binance_derivatives_report.html
+```
+
 Use `download_binance_metadata.py` for exchange metadata:
 
 ```bash
 python3 alpha-gen-skills/data-download-clean/scripts/download_binance_metadata.py \
   --markets spot usd_m_futures \
   --output-dir data/market/binance
+```
+
+Default report:
+
+```text
+data/market/binance/reports/binance_metadata_report.html
 ```
 
 ## File Layout
@@ -167,6 +185,7 @@ Write raw and clean files under stable paths:
 <output_dir>/clean/<market>/<dataset>/<symbol>/<interval-or-period>.csv
 <output_dir>/raw/<market>/exchange_metadata/exchangeInfo.json
 <output_dir>/clean/<market>/exchange_metadata/symbols.csv
+<output_dir>/reports/<script-specific-report>.html
 ```
 
 ## Clean Schemas
@@ -274,6 +293,7 @@ Downloaded:
 Wrote:
 - raw: <path>
 - clean: <path>
+- report: <path>
 
 Known limitations:
 - Binance public data only unless CMC context was explicitly used

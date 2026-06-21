@@ -12,6 +12,8 @@ Keep new skill folders inside one of these buckets unless the folder is the root
 
 Initial data-source selection and API key setup belong in `start-here/`. Repeatable Binance download/clean pipelines live in `alpha-gen-skills/data-download-clean/`.
 
+Runnable setup, download, and research steps should emit a static HTML report next to their outputs. Treat that report as the first user-facing audit: it should show what is right, what needs review, what is wrong, which files were written, and the next action.
+
 For skill installers, install one skill folder at a time:
 
 1. `start-here/`
@@ -46,3 +48,5 @@ The expected output is a short ranked report:
 8. Alpha cards for surviving anomalies
 9. Rejected anomalies and why
 10. Final conclusion
+
+For executable workflows, include `candidate_report.html` or the relevant `*.report.html` file with the machine-readable CSV/JSON outputs.

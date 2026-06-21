@@ -8,6 +8,8 @@ financial recommendations.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
+import html
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -507,6 +509,194 @@ def generate_candidate_report(
     output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _esc(value: object) -> str:
+    return html.escape("" if value is None else str(value), quote=True)
+
+
+def _fmt(value: object) -> str:
+    if value is None:
+        return ""
+    try:
+        if pd.isna(value):
+            return ""
+    except (TypeError, ValueError):
+        pass
+    if isinstance(value, float):
+        return f"{value:.6g}"
+    return str(value)
+
+
+def html_table(df: pd.DataFrame, cols: list[str]) -> str:
+    if df.empty:
+        return "<p>No rows.</p>"
+    view = df[cols].copy()
+    header = "".join(f"<th>{_esc(col)}</th>" for col in cols)
+    rows = []
+    for _, row in view.iterrows():
+        cells = "".join(f"<td>{_esc(_fmt(row[col]))}</td>" for col in cols)
+        rows.append(f"<tr>{cells}</tr>")
+    return f"<table><thead><tr>{header}</tr></thead><tbody>{''.join(rows)}</tbody></table>"
+
+
+def report_check_rows(checks: list[dict[str, object]]) -> str:
+    status_labels = {"pass": "Right", "warn": "Needs Review", "fail": "Wrong", "info": "Info"}
+    rows = []
+    for check in checks:
+        status = str(check.get("status", "info"))
+        rows.append(
+            "<tr>"
+            f"<td><span class=\"pill {status}\">{_esc(status_labels.get(status, 'Info'))}</span></td>"
+            f"<td>{_esc(check.get('name', ''))}</td>"
+            f"<td>{_esc(check.get('detail', ''))}</td>"
+            "</tr>"
+        )
+    return "".join(rows)
+
+
+def generate_candidate_html_report(
+    output_path: Path,
+    quality: dict,
+    first_20: pd.DataFrame,
+    regimes: pd.DataFrame,
+    sweeps: pd.DataFrame,
+    costs: pd.DataFrame,
+    output_files: list[str],
+) -> None:
+    ranked = first_20.copy()
+    ranked["abs_edge"] = ranked["edge"].abs()
+    ranked = ranked.sort_values(["n", "abs_edge"], ascending=[False, False]).head(10)
+    robust_sweeps = sweeps.sort_values(["n", "edge"], ascending=[False, False]).head(10)
+    cost_fragile = costs.sort_values(["cost_bps", "net_mean"], ascending=[True, True]).head(10)
+    quality_checks = [
+        {
+            "status": "pass" if quality["clean_rows"] > 250 else "warn",
+            "name": "Clean row count",
+            "detail": f"{quality['clean_rows']} clean rows from {quality['raw_rows']} raw rows.",
+        },
+        {
+            "status": "pass" if quality["bad_bars_removed"] == 0 else "warn",
+            "name": "Bad bars removed",
+            "detail": f"{quality['bad_bars_removed']} invalid OHLCV bars were removed.",
+        },
+        {
+            "status": "pass" if quality["duplicate_timestamps_removed"] == 0 else "warn",
+            "name": "Duplicate timestamps",
+            "detail": f"{quality['duplicate_timestamps_removed']} duplicate timestamps were removed.",
+        },
+        {
+            "status": "pass" if quality["gap_report"]["large_gap_count"] == 0 else "warn",
+            "name": "Timestamp gaps",
+            "detail": f"{quality['gap_report']['large_gap_count']} large gaps detected.",
+        },
+        {
+            "status": "pass",
+            "name": "Lookahead audit",
+            "detail": "Rolling highs and forward target alignment assertions passed before writing outputs.",
+        },
+    ]
+    generated = "\n".join(f"<li><code>{_esc(name)}</code></li>" for name in output_files)
+    now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
+    document = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OHLCV Alpha Research HTML Report</title>
+  <style>
+    :root {{
+      color-scheme: light;
+      --bg: #f6f7f4;
+      --ink: #1c2228;
+      --muted: #5d6872;
+      --line: #d7ddd2;
+      --panel: #ffffff;
+      --pass: #177245;
+      --warn: #9a6100;
+      --fail: #b42318;
+      --info: #315da8;
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }}
+    main {{ width: min(1180px, calc(100% - 32px)); margin: 32px auto 56px; }}
+    header, section {{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }}
+    h1 {{ margin: 0 0 8px; font-size: 28px; letter-spacing: 0; }}
+    h2 {{ margin: 0 0 14px; font-size: 18px; letter-spacing: 0; }}
+    p {{ margin: 0 0 10px; color: var(--muted); }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+    th, td {{ text-align: left; border-top: 1px solid var(--line); padding: 9px 7px; vertical-align: top; }}
+    th {{ color: var(--muted); font-weight: 650; }}
+    code {{ overflow-wrap: anywhere; }}
+    ul {{ margin: 0; padding-left: 20px; color: var(--muted); }}
+    .pill {{ display: inline-block; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 700; }}
+    .pass {{ color: var(--pass); background: #e8f5ee; }}
+    .warn {{ color: var(--warn); background: #fff4df; }}
+    .fail {{ color: var(--fail); background: #fdebea; }}
+    .info {{ color: var(--info); background: #edf3ff; }}
+    @media (max-width: 720px) {{
+      main {{ width: min(100% - 20px, 1180px); margin-top: 12px; }}
+      header, section {{ padding: 14px; }}
+      table {{ display: block; overflow-x: auto; }}
+    }}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>OHLCV Alpha Research Scan</h1>
+      <p>Educational research output only. This is not financial advice.</p>
+      <p>Generated {now}</p>
+    </header>
+    <section>
+      <h2>What Is Right And What Needs Review</h2>
+      <table>
+        <thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead>
+        <tbody>{report_check_rows(quality_checks)}</tbody>
+      </table>
+    </section>
+    <section>
+      <h2>Strongest Exploratory Rows</h2>
+      {html_table(ranked, ["signal", "target", "n", "edge", "median", "hit_rate", "profit_factor", "break_even_round_trip_bps"])}
+    </section>
+    <section>
+      <h2>Threshold Sweep Preview</h2>
+      {html_table(robust_sweeps, ["sweep", "threshold", "target", "n", "edge", "median", "hit_rate", "profit_factor"])}
+    </section>
+    <section>
+      <h2>Cost Stress Preview</h2>
+      {html_table(cost_fragile, ["signal", "target", "cost_bps", "n", "net_mean", "net_median", "net_hit_rate"])}
+    </section>
+    <section>
+      <h2>Generated Files</h2>
+      <ul>{generated}</ul>
+    </section>
+    <section>
+      <h2>Required Next Actions</h2>
+      <ul>
+        <li>Do not promote any row until train/validation/test and walk-forward checks pass.</li>
+        <li>Inspect regime rows before discarding weak global signals.</li>
+        <li>Reject candidates whose apparent edge depends on one outlier, one threshold, or zero-cost assumptions.</li>
+        <li>Write a final anomaly dossier from <code>references/report-template.md</code> before any strategy spec.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
+"""
+    output_path.write_text(document, encoding="utf-8")
+
+
 def markdown_table(df: pd.DataFrame, cols: list[str]) -> str:
     if df.empty:
         return "_No rows._"
@@ -544,19 +734,31 @@ def assert_no_targets_in_features(feature_cols: Iterable[str]) -> None:
 
 def write_outputs(df: pd.DataFrame, clean: pd.DataFrame, quality: dict, output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    clean.to_csv(output_dir / "cleaned_ohlcv.csv", index=False)
-    df.to_csv(output_dir / "features_targets.csv", index=False)
-    (output_dir / "data_quality.json").write_text(json.dumps(quality, indent=2), encoding="utf-8")
+    output_files = [
+        "cleaned_ohlcv.csv",
+        "features_targets.csv",
+        "data_quality.json",
+        "first_20_event_studies.csv",
+        "regime_event_studies.csv",
+        "threshold_sweeps.csv",
+        "cost_stress.csv",
+        "candidate_report.md",
+        "candidate_report.html",
+    ]
+    clean.to_csv(output_dir / output_files[0], index=False)
+    df.to_csv(output_dir / output_files[1], index=False)
+    (output_dir / output_files[2]).write_text(json.dumps(quality, indent=2), encoding="utf-8")
 
     first_20 = run_first_20(df)
     regimes = run_regime_splits(df)
     sweeps = run_threshold_sweeps(df)
     costs = run_cost_stress(df)
-    first_20.to_csv(output_dir / "first_20_event_studies.csv", index=False)
-    regimes.to_csv(output_dir / "regime_event_studies.csv", index=False)
-    sweeps.to_csv(output_dir / "threshold_sweeps.csv", index=False)
-    costs.to_csv(output_dir / "cost_stress.csv", index=False)
-    generate_candidate_report(output_dir / "candidate_report.md", quality, first_20, regimes, sweeps, costs)
+    first_20.to_csv(output_dir / output_files[3], index=False)
+    regimes.to_csv(output_dir / output_files[4], index=False)
+    sweeps.to_csv(output_dir / output_files[5], index=False)
+    costs.to_csv(output_dir / output_files[6], index=False)
+    generate_candidate_report(output_dir / output_files[7], quality, first_20, regimes, sweeps, costs)
+    generate_candidate_html_report(output_dir / output_files[8], quality, first_20, regimes, sweeps, costs, output_files)
 
 
 def make_example(path: Path, rows: int = 320) -> None:
