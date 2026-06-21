@@ -1,6 +1,6 @@
-# BNB Hack Track 2 - Strategy Skill Starter
+# BNB Project Foundation - Track 2 Strategy Skill
 
-This folder is a simplified starter package for **Track 2: Strategy Skills**.
+This folder is the foundation package for **BNB Hack Track 2: Strategy Skills**.
 
 The goal is **not** to build a live trading bot. The goal is to build a **CoinMarketCap Skill** that turns market data into a **backtestable strategy spec**.
 
