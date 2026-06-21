@@ -10,3 +10,5 @@ Examples:
 - imported examples that are not authored in this workspace
 
 Keep source attribution in each imported skill folder.
+
+Install third-party skills individually as `third-party-skills/<skill-name>/`.
