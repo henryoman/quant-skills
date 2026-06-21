@@ -9,6 +9,7 @@ Keep the root simple:
 ```text
 quant-skills/
   instructions.md
+  instructions-skill/
   start-here/
   README.md
   cmc-bnb-skills/
@@ -16,7 +17,7 @@ quant-skills/
   alpha-gen-skills/
 ```
 
-Only `instructions.md` and `start-here/` are root-level instruction/bootstrap artifacts. All other skills go in one of the three buckets.
+Only `instructions.md`, `instructions-skill/`, and `start-here/` are root-level instruction/bootstrap artifacts. All other skills go in one of the three buckets.
 
 ## Buckets
 
@@ -26,7 +27,9 @@ Only `instructions.md` and `start-here/` are root-level instruction/bootstrap ar
 
 ## Standalone Skill Install
 
-If someone downloads skills through a skill installer, `start-here/` is the portable instruction package. It is self-contained:
+If someone downloads skills through a skill installer, install `instructions-skill/` first as the tiny first-read router, then `start-here/` as the portable setup package.
+
+`start-here/` is self-contained:
 
 - `start-here/SKILL.md`
 - `start-here/references/free-data-manifest.md`
@@ -35,20 +38,23 @@ If someone downloads skills through a skill installer, `start-here/` is the port
 - `start-here/references/examples.md`
 - `start-here/agents/openai.yaml`
 
-The root `instructions.md` is for repository-first onboarding. The `start-here/` folder is for agent/skill-first usage.
+The root `instructions.md` is for repository-first onboarding. The `instructions-skill/` folder is for skill-first routing. The `start-here/` folder is for readiness and setup.
 
 Install one concrete skill folder at a time. Do not point an installer at the whole repo or at a bucket folder unless the installer explicitly supports nested skills.
 
 Recommended order:
 
-1. `start-here/`
-2. `cmc-bnb-skills/<skill-name>/`
-3. `alpha-gen-skills/<skill-name>/`
-4. `third-party-skills/<skill-name>/`
+1. `instructions-skill/`
+2. `start-here/`
+3. `alpha-gen-skills/bnb-alpha-research/` for BNB anomaly discovery and heatmaps
+4. `cmc-bnb-skills/bnb-project-foundation/` for Track 2 strategy-spec packaging
+5. Other `cmc-bnb-skills/<skill-name>/`, `alpha-gen-skills/<skill-name>/`, or `third-party-skills/<skill-name>/` as needed
 
 Data-source selection, API key setup, and `.env` templates belong in `start-here/`. Repeatable Binance download/clean pipelines live in `alpha-gen-skills/data-download-clean/`. Downstream alpha-generation skills should consume normalized data and focus on research.
 
 Every runnable step should produce a static HTML report alongside its data outputs. The report is the first file a user or follow-on agent should inspect. It must say what is right, what needs review, what is wrong, which files were written, and the required next action.
+
+BNB-specific anomaly discovery belongs in `alpha-gen-skills/bnb-alpha-research/`. That skill pulls BNB/BTC/ETH candles, computes past-only features, scans BNB events, generates heatmaps, and emits `strategy_candidates.json`. Use `cmc-bnb-skills/bnb-project-foundation/` after that to package the candidate into a CMC Track 2 strategy spec.
 
 ## OHLCV-Only Alpha Discovery Framework
 

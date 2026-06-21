@@ -1,6 +1,6 @@
 ---
 name: starter-pack
-description: Use first when onboarding an agent or user into this quant-skills repo. Sets up the repo workflow, checks required local tools, chooses market-data providers, creates API-key env templates, downloads normalized OHLCV data, and routes into CMC, Binance, market-report, or OHLCV alpha-research skills.
+description: Use first when onboarding an agent or user into this quant-skills repo. Sets up the repo workflow, checks required local tools, chooses market-data providers, creates API-key env templates, downloads normalized OHLCV data, and routes into CMC, Binance, BNB alpha heatmaps, market-report, or OHLCV alpha-research skills.
 ---
 
 # Starter Pack Skill
@@ -27,6 +27,8 @@ cmc-bnb-skills/cmc-api-market/
 cmc-bnb-skills/cmc-api-dex/
 cmc-bnb-skills/crypto-research/
 cmc-bnb-skills/market-report/
+cmc-bnb-skills/bnb-project-foundation/
+alpha-gen-skills/bnb-alpha-research/
 alpha-gen-skills/ohlcv-alpha-research/
 ```
 
@@ -84,7 +86,9 @@ rsync -a cmc-bnb-skills/cmc-api-market/ "$HOME/.codex/skills/cmc-api-market/"
 rsync -a cmc-bnb-skills/cmc-api-dex/ "$HOME/.codex/skills/cmc-api-dex/"
 rsync -a cmc-bnb-skills/crypto-research/ "$HOME/.codex/skills/crypto-research/"
 rsync -a cmc-bnb-skills/market-report/ "$HOME/.codex/skills/market-report/"
+rsync -a alpha-gen-skills/bnb-alpha-research/ "$HOME/.codex/skills/bnb-alpha-research/"
 rsync -a alpha-gen-skills/ohlcv-alpha-research/ "$HOME/.codex/skills/ohlcv-alpha-research/"
+rsync -a cmc-bnb-skills/bnb-project-foundation/ "$HOME/.codex/skills/bnb-project-foundation/"
 ```
 
 If the user is not in this repository yet, tell them to clone or download the repo first, then run install commands from the repo root.
@@ -100,8 +104,9 @@ A. Current market intelligence or thesis research
 B. CMC API quotes, listings, metadata, DEX, or market data
 C. Download historical OHLCV data and set up API keys
 D. Run OHLCV alpha research or local backtesting
-E. Market report generation
-F. Custom skill work
+E. Run BNB-specific anomaly research with heatmaps
+F. Market report generation
+G. Custom skill work
 ```
 
 ### Step 2: Confirm required readiness
@@ -113,8 +118,9 @@ A needs: starter-pack + cmc-mcp + crypto-research
 B needs: starter-pack + relevant cmc-api-* skill + curl + jq + optional CMC_API_KEY
 C needs: starter-pack + python3 + provider choice + optional provider API keys
 D needs: starter-pack + python3 + normalized OHLCV CSV + ohlcv-alpha-research
-E needs: starter-pack + market-report + cmc-mcp + relevant cmc-api-* skill
-F needs: starter-pack + python3 + project instructions + explicit user scope
+E needs: starter-pack + python3 + bnb-alpha-research + Binance public access
+F needs: starter-pack + market-report + cmc-mcp + relevant cmc-api-* skill
+G needs: starter-pack + python3 + project instructions + explicit user scope
 ```
 
 If anything is missing, provide only the commands needed to fix that missing piece.
@@ -289,6 +295,12 @@ Research narrative, token thesis, strategy ideation:
 
 Report generation and sponsor-aligned summaries:
   cmc-bnb-skills/market-report/
+
+BNB-specific data pull, anomaly heatmaps, and strategy candidates:
+  alpha-gen-skills/bnb-alpha-research/
+
+CMC/BNB Track 2 strategy-spec packaging:
+  cmc-bnb-skills/bnb-project-foundation/
 
 OHLCV-only event studies, anomaly ranking, robustness, and alpha cards:
   alpha-gen-skills/ohlcv-alpha-research/

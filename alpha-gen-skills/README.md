@@ -5,6 +5,7 @@ Skills and packages authored in this workspace live here.
 Current folders:
 
 - `data-download-clean`: Binance public market-data download and cleaning pipelines for repeatable local datasets.
+- `bnb-alpha-research`: BNB-specific data pull, anomaly event studies, heatmaps, and strategy-candidate generation.
 - `ohlcv-alpha-research`: OHLCV-only alpha research framework and runnable event-study engine.
 - `quant-basics`: reserved for foundational quant research material.
 

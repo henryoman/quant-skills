@@ -1,0 +1,4 @@
+interface:
+  display_name: "Quant Instructions"
+  short_description: "First-read router for the quant skills repo"
+  default_prompt: "Use $quant-skills-instructions to read root instructions, route into start-here, and select the correct specialized quant skill."
