@@ -1,4 +1,0 @@
-interface:
-  display_name: "Starter Pack"
-  short_description: "Repo onboarding, API keys, data downloads, and routing"
-  default_prompt: "Use $starter-pack to check readiness, set up provider API keys, download normalized OHLCV data, and route into the right quant skill."

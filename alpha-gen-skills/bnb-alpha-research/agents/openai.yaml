@@ -1,4 +1,0 @@
-interface:
-  display_name: "BNB Alpha Research"
-  short_description: "Pull BNB data, scan anomalies, build heatmaps, and emit strategy candidates"
-  default_prompt: "Use $bnb-alpha-research to pull BNB/BTC/ETH Binance candles, run anomaly event studies, generate heatmaps, and produce backtestable BNB strategy candidates."

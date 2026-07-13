@@ -1,56 +1,73 @@
-# Quant Skills
+# Quant Research Framework
 
-Read `instructions.md` first. For skill-install workflows, install `instructions-skill/` first, then `start-here/`.
+This repository is an active framework for adversarial, reproducible alpha
+research. Its purpose is to determine whether market data contains stable,
+economically usable information—not to optimize until a backtest looks good.
 
-This workspace is organized into three top-level buckets plus the root instruction artifacts:
+## Start here
 
-- `cmc-bnb-skills/`: official native CoinMarketCap skills and BNB project foundation material.
-- `third-party-skills/`: imported skills from outside vendors, community repos, mirrors, or other external authors.
-- `alpha-gen-skills/`: skills and research packages authored in this workspace for alpha generation, strategy research, data setup, and contest work.
-- `instructions-skill/`: tiny first-read router that points agents to `instructions.md`, `start-here/`, and the correct specialized skill.
+Read the active material in this order:
 
-Keep new skill folders inside one of these buckets unless the folder is a root bootstrap artifact like `instructions-skill/` or `start-here/`.
+1. [Research mandate](ADVERSARIAL_QUANT_RESEARCHER.md) — the governing
+   epistemic rules and acceptance standard.
+2. [Framework guide](framework/README.md) — the research lifecycle and the
+   order in which to use the framework chapters.
+3. [Research workspace](research/README.md) — where cycles, registered
+   experiments, results, and decisions belong.
+4. [Source library](docs/README.md) — external references and historical
+   provenance.
+5. [Reporting standards](standards/reporting/README.md) — how durable evidence
+   should be presented.
 
-Initial data-source selection and API key setup belong in `start-here/`. Repeatable Binance download/clean pipelines live in `alpha-gen-skills/data-download-clean/`.
-
-Runnable setup, download, and research steps should emit a static HTML report next to their outputs. Treat that report as the first user-facing audit: it should show what is right, what needs review, what is wrong, which files were written, and the next action.
-
-For BNB-specific alpha work, use `alpha-gen-skills/bnb-alpha-research/`. It pulls BNB/BTC/ETH candles, scans BNB anomaly events, generates heatmaps, and writes `strategy_candidates.json`.
-
-For skill installers, install one skill folder at a time:
-
-1. `instructions-skill/`
-2. `start-here/`
-3. `alpha-gen-skills/bnb-alpha-research/` when deriving BNB alpha
-4. `cmc-bnb-skills/bnb-project-foundation/` when packaging Track 2 strategy specs
-5. Other `cmc-bnb-skills/<skill-name>/`, `alpha-gen-skills/<skill-name>/`, or `third-party-skills/<skill-name>/`
-
-## Default Research Standard
-
-Unless a skill says otherwise, alpha research in this repo should follow the OHLCV-only framework in `instructions.md`.
-
-Core rule:
+## Active repository map
 
 ```text
-Use only timestamp, open, high, low, close, and volume.
-Define events using information known at or before time t.
-Measure outcomes only after time t.
-Compare every event against the unconditional baseline.
-Validate chronologically out of sample.
-Reject signals that depend on one magic threshold, impossible execution, or unrealistic costs.
+.
+├── ADVERSARIAL_QUANT_RESEARCHER.md  Governing research mandate
+├── framework/                       Methodology, features, validation, templates
+├── research/                        New cycles and experiment records
+├── docs/                            References and provenance
+├── standards/                       Reporting and artifact standards
+├── support-skills/                  Optional supporting capabilities
+└── _archive_do_not_use/             Frozen legacy material; excluded from use
 ```
 
-The expected output is a short ranked report:
+## Authority
 
-1. Data quality summary
-2. Feature summary
-3. Baseline future-return statistics
-4. Anomaly ranking table
-5. Robustness summary
-6. Regime summary
-7. Cost sensitivity summary
-8. Alpha cards for surviving anomalies
-9. Rejected anomalies and why
-10. Final conclusion
+When active documents overlap, use this order:
 
-For executable workflows, include `candidate_report.html` or the relevant `*.report.html` file with the machine-readable CSV/JSON outputs.
+1. The current research question and its frozen data/execution contract.
+2. `ADVERSARIAL_QUANT_RESEARCHER.md`.
+3. The chapters under `framework/`.
+4. Domain-specific extensions.
+5. Reporting and visual standards.
+
+Historical provenance records and archived material are not active authority.
+
+## What exists now
+
+- A complete adversarial research mandate.
+- Data, labeling, feature, experiment, validation, cost, visualization, and
+  asset-extension guidance.
+- A broad experiment catalog covering distinct hypothesis families.
+- A reusable experiment specification and report template.
+- A foundational source list for one-minute BTC OHLCV research.
+- A unified reporting design system and domain-specific companions.
+
+## What is not built yet
+
+- A canonical executable research engine.
+- A dataset registry and immutable data manifests.
+- A machine-readable experiment ledger shared across research cycles.
+- A first end-to-end research cycle using the framework.
+- Automated leakage, cost, and promotion-gate checks.
+
+Those are implementation tasks, not missing principles. New work should enter
+through `research/` so that hypotheses, failed tests, and decisions remain
+auditable.
+
+## Archive policy
+
+`_archive_do_not_use/` is retained only to avoid losing earlier work. Do not
+search it, cite it, import from it, copy patterns from it, or treat it as current
+guidance unless a user explicitly asks for archival review.
