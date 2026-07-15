@@ -1,0 +1,2 @@
+[console_scripts]
+quant-research = research_cli.main:main

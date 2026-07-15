@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: quant-ml
+Version: 0.1.0
+Summary: Optional machine-learning adapters for quantitative research
+Requires-Python: >=3.11
+Requires-Dist: quant-core
+Provides-Extra: torch
+Requires-Dist: torch; extra == "torch"

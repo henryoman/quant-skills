@@ -1,0 +1,40 @@
+{
+  "symbol": "BNB",
+  "cmc_id": 1839,
+  "timeframe": "1h",
+  "horizon": "24h",
+  "selected_strategy": "volatility_breakout",
+  "market_regime": {
+    "trend": "up",
+    "volatility": "expanding",
+    "volume": "expanding"
+  },
+  "entry_rules": [
+    "close > rolling_high_20",
+    "volume_zscore_20 > 1.25",
+    "atr_pct > median_atr_pct_60"
+  ],
+  "exit_rules": [
+    "close < ema_20",
+    "return_since_entry <= -0.025",
+    "return_since_entry >= 0.05",
+    "bars_held >= 24"
+  ],
+  "risk_rules": {
+    "max_position_size_pct": 10,
+    "stop_loss_pct": 2.5,
+    "take_profit_pct": 5
+  },
+  "backtest_config": {
+    "fee_bps": 10,
+    "slippage_bps": 5,
+    "historical_data_source": "binance_public_klines",
+    "walk_forward": true
+  },
+  "data_provenance": {
+    "live_context_source": "coinmarketcap",
+    "historical_ohlcv_source": "binance_public_klines",
+    "fixture_mode": false,
+    "synthetic_mode": false
+  }
+}

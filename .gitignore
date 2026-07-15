@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+.uv-cache/
+.turbo/
+node_modules/
+dist/
+build/
+.coverage
+coverage/

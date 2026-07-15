@@ -1,0 +1,12 @@
+{
+  "name": "bnb-project-foundation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "strategy": "bun run skill/scripts/generate-strategy.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

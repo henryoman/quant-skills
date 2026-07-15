@@ -13,8 +13,9 @@
 For quantitative research, follow this order:
 
 1. The user's current request and the experiment's frozen contract.
-2. `ADVERSARIAL_QUANT_RESEARCHER.md`.
-3. `framework/README.md` and the framework chapters it routes to.
+2. `skills/quant-alpha-research/SKILL.md`.
+3. `skills/quant-alpha-research/references/research-mandate.md` and the references
+   routed by the skill.
 4. Applicable domain extensions.
 5. `standards/` for presentation and artifact design.
 

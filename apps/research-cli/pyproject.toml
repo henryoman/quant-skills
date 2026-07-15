@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-research-cli"
+version = "0.1.0"
+description = "Command-line application for registered quantitative research workflows"
+requires-python = ">=3.11"
+dependencies = ["quant-research", "quant-visuals"]
+
+[project.scripts]
+quant-research = "research_cli.main:main"
+
+[tool.uv.sources]
+quant-research = { workspace = true }
+quant-visuals = { workspace = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]

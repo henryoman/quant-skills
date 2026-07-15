@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quant.local/schemas/plot-spec.schema.json",
+  "title": "Quant Plot Specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plotId",
+    "kind",
+    "question",
+    "title",
+    "subtitle",
+    "x",
+    "y",
+    "series",
+    "howToRead",
+    "provenance"
+  ],
+  "properties": {
+    "plotId": { "type": "string", "minLength": 1 },
+    "kind": {
+      "enum": ["line", "bar", "scatter", "histogram", "heatmap", "drawdown", "calibration", "table"]
+    },
+    "question": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "subtitle": { "type": "string", "minLength": 1 },
+    "x": { "$ref": "#/$defs/axis" },
+    "y": { "$ref": "#/$defs/axis" },
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/series" }
+    },
+    "howToRead": { "type": "string", "minLength": 1 },
+    "whatItShows": { "type": "string" },
+    "whyItMatters": { "type": "string" },
+    "whatItDoesNotProve": { "type": "string" },
+    "supportField": { "type": ["string", "null"] },
+    "uncertaintyMethod": { "type": ["string", "null"] },
+    "provenance": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "heatmap" } }, "required": ["kind"] },
+      "then": { "required": ["supportField"], "properties": { "supportField": { "type": "string", "minLength": 1 } } }
+    }
+  ],
+  "$defs": {
+    "axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "label", "unit", "scale"],
+      "properties": {
+        "field": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "unit": { "type": "string" },
+        "scale": { "enum": ["linear", "log", "time", "category"] },
+        "baseline": { "type": ["number", "null"] }
+      }
+    },
+    "series": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "label", "role", "colorToken"],
+      "properties": {
+        "field": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "role": { "enum": ["primary", "comparison", "uncertainty", "support"] },
+        "colorToken": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

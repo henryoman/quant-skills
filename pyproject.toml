@@ -1,0 +1,20 @@
+[project]
+name = "quant-skills-workspace"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+  "apps/research-cli",
+  "packages/python/quant-core",
+  "packages/python/quant-research",
+  "packages/python/quant-visuals",
+  "packages/python/quant-ml",
+]
+
+[tool.uv.sources]
+quant-core = { workspace = true }
+quant-research = { workspace = true }
+quant-visuals = { workspace = true }
+quant-ml = { workspace = true }

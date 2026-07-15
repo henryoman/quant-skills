@@ -1,9 +1,12 @@
-# Documentation Library
+# Documentation
 
-- `references/` contains external source lists and literature notes used to
-  design or challenge active research.
-- `provenance/` contains historical crosswalks and origin-repository context.
-  It is not active methodology and its paths may not exist in this repository.
+- [`architecture/README.md`](architecture/README.md) defines package ownership,
+  dependency direction, and extension workflows.
+- [`../skills/quant-alpha-research/references/`](../skills/quant-alpha-research/references/)
+  contains active research methodology and source lists.
+- [`../packages/schemas/`](../packages/schemas/) defines cross-language artifact
+  boundaries.
+- `provenance/` contains historical crosswalks. It is context only and is not
+  active methodology.
 
-Active research rules belong in `framework/`. Run-specific empirical evidence
-belongs in `research/`.
+For the central map and first commands, return to the [root README](../README.md).

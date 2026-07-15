@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quant.local/schemas/report-document.schema.json",
+  "title": "Quant Research Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reportId",
+    "title",
+    "decision",
+    "classification",
+    "scope",
+    "profile",
+    "evidence",
+    "rejectedIdeas",
+    "provenance"
+  ],
+  "properties": {
+    "reportId": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "decision": { "type": "string", "minLength": 1 },
+    "classification": { "type": "string", "minLength": 1 },
+    "scope": { "type": "string", "minLength": 1 },
+    "profile": { "enum": ["current", "mellow", "graph_guided"] },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "rejectedIdeas": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "provenance": { "type": "object" }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blockId", "finding", "plot", "exactValues", "limitations"],
+      "properties": {
+        "blockId": { "type": "string", "minLength": 1 },
+        "finding": { "type": "string", "minLength": 1 },
+        "plot": { "$ref": "plot-spec.schema.json" },
+        "exactValues": { "type": "array", "items": { "type": "object" } },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

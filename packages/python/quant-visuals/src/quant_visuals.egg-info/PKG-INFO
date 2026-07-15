@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: quant-visuals
+Version: 0.1.0
+Summary: Renderer-independent quantitative plotting and frontend evidence contracts
+Requires-Python: >=3.11

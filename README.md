@@ -1,73 +1,131 @@
-# Quant Research Framework
+# Quant Research Monorepo
 
-This repository is an active framework for adversarial, reproducible alpha
-research. Its purpose is to determine whether market data contains stable,
-economically usable information—not to optimize until a backtest looks good.
+An adversarial research workspace for testing whether market data contains
+stable, executable information. The repository separates scientific rules,
+reusable computation, workflow orchestration, machine learning, visualization,
+and report applications so each can evolve without becoming one giant script.
 
-## Start here
+It is designed to reject false alpha aggressively. It does not promise profit.
 
-Read the active material in this order:
+## Where to start
 
-1. [Research mandate](ADVERSARIAL_QUANT_RESEARCHER.md) — the governing
-   epistemic rules and acceptance standard.
-2. [Framework guide](framework/README.md) — the research lifecycle and the
-   order in which to use the framework chapters.
-3. [Research workspace](research/README.md) — where cycles, registered
-   experiments, results, and decisions belong.
-4. [Source library](docs/README.md) — external references and historical
-   provenance.
-5. [Reporting standards](standards/reporting/README.md) — how durable evidence
-   should be presented.
+| Goal | Start here |
+|---|---|
+| Understand the research standard | [`skills/quant-alpha-research/SKILL.md`](skills/quant-alpha-research/SKILL.md) |
+| Run or continue empirical work | [`research/README.md`](research/README.md) |
+| Add math, indicators, costs, or validation | [`packages/python/quant-core`](packages/python/quant-core) |
+| Add research actions or multi-step routines | [`packages/python/quant-research`](packages/python/quant-research) |
+| Add PyTorch or another model adapter | [`packages/python/quant-ml`](packages/python/quant-ml) |
+| Add renderer-neutral plot contracts | [`packages/python/quant-visuals`](packages/python/quant-visuals) or [`packages/typescript/plotting`](packages/typescript/plotting) |
+| Add report components | [`packages/typescript/report-ui`](packages/typescript/report-ui) |
+| Build the report application | [`apps/report-studio`](apps/report-studio) |
+| Change a cross-language artifact | [`packages/schemas`](packages/schemas) |
+| Compare report styles | [`design/OPTIONS.md`](design/OPTIONS.md) |
+| Understand all dependency rules | [`docs/architecture/README.md`](docs/architecture/README.md) |
 
-## Active repository map
+## Repository map
 
 ```text
-.
-├── ADVERSARIAL_QUANT_RESEARCHER.md  Governing research mandate
-├── framework/                       Methodology, features, validation, templates
-├── research/                        New cycles and experiment records
-├── docs/                            References and provenance
-├── standards/                       Reporting and artifact standards
-├── support-skills/                  Optional supporting capabilities
-└── _archive_do_not_use/             Frozen legacy material; excluded from use
+quant-skills/
+├── apps/
+│   ├── research-cli/        Python command application
+│   └── report-studio/       TypeScript/Bun report application
+├── packages/
+│   ├── python/
+│   │   ├── quant-core/      Pure math, indicators, costs, integrity checks
+│   │   ├── quant-research/  Actions, routines, cycle state, templates
+│   │   ├── quant-ml/        Framework-neutral datasets + optional PyTorch
+│   │   └── quant-visuals/   Renderer-neutral evidence/report contracts
+│   ├── typescript/
+│   │   ├── contracts/       Runtime-facing TypeScript artifact contracts
+│   │   ├── plotting/        Plot-spec factories and transformations
+│   │   └── report-ui/       Pure report rendering components
+│   └── schemas/             Language-neutral JSON Schemas
+├── skills/
+│   └── quant-alpha-research/ Scientific method, references, thin wrappers
+├── research/                Run-specific cycles and empirical artifacts
+├── design/                  Current, mellow, and graph-guided comparisons
+├── standards/               Reusable reporting standards
+├── docs/                    Architecture and provenance documentation
+├── tooling/                 Shared compiler/tool configuration
+└── _archive_do_not_use/     Frozen history; excluded from active work
 ```
 
-## Authority
+## Dependency direction
 
-When active documents overlap, use this order:
+```text
+Python
+research-cli -> quant-research -> quant-core
+             -> quant-visuals
+quant-ml     -> quant-core       (PyTorch is an optional extra)
 
-1. The current research question and its frozen data/execution contract.
-2. `ADVERSARIAL_QUANT_RESEARCHER.md`.
-3. The chapters under `framework/`.
-4. Domain-specific extensions.
-5. Reporting and visual standards.
+TypeScript
+report-studio -> report-ui -> plotting -> contracts
+              -> plotting  -> contracts
 
-Historical provenance records and archived material are not active authority.
+Cross-language
+Python artifact producer -> JSON Schema <- TypeScript artifact consumer
+```
 
-## What exists now
+Lower layers never import applications, UIs, or workflow actions. Research
+results cross language boundaries as validated data, not by importing Python
+from TypeScript or TypeScript from Python.
 
-- A complete adversarial research mandate.
-- Data, labeling, feature, experiment, validation, cost, visualization, and
-  asset-extension guidance.
-- A broad experiment catalog covering distinct hypothesis families.
-- A reusable experiment specification and report template.
-- A foundational source list for one-minute BTC OHLCV research.
-- A unified reporting design system and domain-specific companions.
+## Setup and verification
 
-## What is not built yet
+The workspace uses Bun/Turborepo for TypeScript and uv workspaces for Python.
 
-- A canonical executable research engine.
-- A dataset registry and immutable data manifests.
-- A machine-readable experiment ledger shared across research cycles.
-- A first end-to-end research cycle using the framework.
-- Automated leakage, cost, and promotion-gate checks.
+```bash
+bun install
+uv sync --all-packages
+bun run check
+bun run build
+bunx turbo boundaries
+```
 
-Those are implementation tasks, not missing principles. New work should enter
-through `research/` so that hypotheses, failed tests, and decisions remain
-auditable.
+Install PyTorch only for an experiment that needs it:
 
-## Archive policy
+```bash
+uv sync --extra torch --package quant-ml
+```
 
-`_archive_do_not_use/` is retained only to avoid losing earlier work. Do not
-search it, cite it, import from it, copy patterns from it, or treat it as current
-guidance unless a user explicitly asks for archival review.
+The default environment intentionally stays light and does not install
+PyTorch.
+
+## Run the research CLI
+
+```bash
+uv run --package quant-research-cli quant-research --help
+uv run --package quant-research-cli quant-research create-cycle --help
+```
+
+Skill wrappers remain stable entry points for agents:
+
+```bash
+python3 skills/quant-alpha-research/scripts/new_cycle.py --help
+python3 skills/quant-alpha-research/scripts/validate_cycle.py --help
+```
+
+Create empirical work under `research/cycles/`; never hard-code a cycle path in
+a package. Preserve every failed experiment in its ledger.
+
+## Placement rule
+
+Put code in the lowest reusable layer that owns the concept:
+
+- one numerical transformation: `quant-core`;
+- one model/framework adapter: `quant-ml`;
+- one user-triggered operation: a `quant-research` action;
+- a multi-step workflow: a `quant-research` routine;
+- a graph description: plotting;
+- HTML/components/interactions: report UI or an app;
+- a stable data handoff: schemas and contracts;
+- scientific instructions for agents: the skill.
+
+Do not add a catch-all `scripts/` directory at the root. A script is either a
+thin skill entry point, an app command, or reusable package code.
+
+## Back burner
+
+`_archive_do_not_use/` is intentionally frozen. Active code, documentation,
+tests, imports, and research must not read from or depend on it.

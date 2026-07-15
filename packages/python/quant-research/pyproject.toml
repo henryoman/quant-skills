@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-research"
+version = "0.1.0"
+description = "Research actions, routines, cycle contracts, and experiment orchestration"
+requires-python = ">=3.11"
+dependencies = ["quant-core"]
+
+[tool.uv.sources]
+quant-core = { workspace = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"quant_research.templates" = ["*"]

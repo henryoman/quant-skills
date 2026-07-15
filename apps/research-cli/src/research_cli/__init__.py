@@ -1,0 +1,1 @@
+"""Unified research CLI application."""

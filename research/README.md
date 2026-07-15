@@ -1,8 +1,12 @@
 # Research Workspace
 
-This is the active workspace for applying the framework. Keep reusable
-methodology in `framework/`; keep empirical claims and run-specific artifacts
-here.
+This is the active workspace for applying `skills/quant-alpha-research`. Keep reusable
+methodology and deterministic tools in the skill; keep empirical claims and
+run-specific artifacts here.
+
+Create cycles with `skills/quant-alpha-research/scripts/new_cycle.py` rather than
+assembling the structure manually. Validate them with
+`skills/quant-alpha-research/scripts/validate_cycle.py`.
 
 ## Structure
 

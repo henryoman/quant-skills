@@ -1,0 +1,4 @@
+interface:
+  display_name: "BNB Project Foundation"
+  short_description: "Package BNB alpha evidence into a CMC Track 2 strategy spec"
+  default_prompt: "Use $bnb-project-foundation to turn BNB alpha heatmaps and strategy_candidates.json into a sponsor-aligned, backtestable CMC/BNB strategy spec."

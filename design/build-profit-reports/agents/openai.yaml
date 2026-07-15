@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Profit Reports"
+  short_description: "Build dense, profit-relevant quant reports"
+  default_prompt: "Use $build-profit-reports to turn this research into a dense, decision-ready profit report."

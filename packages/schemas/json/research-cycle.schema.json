@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quant.local/schemas/research-cycle.schema.json",
+  "title": "Registered Quant Research Cycle",
+  "type": "object",
+  "required": ["schema_version", "cycle_id", "status", "asset", "venue", "bar_interval", "information_boundary", "cost_model", "holdout"],
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "cycle_id": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["registered", "active", "frozen", "holdout_opened", "completed", "stopped"] },
+    "asset": { "type": "string", "minLength": 1 },
+    "venue": { "type": "string", "minLength": 1 },
+    "bar_interval": { "type": "string", "minLength": 1 },
+    "information_boundary": {
+      "type": "object",
+      "required": ["feature_cutoff", "decision_time", "execution_time"],
+      "properties": {
+        "feature_cutoff": { "type": "string", "minLength": 1 },
+        "decision_time": { "type": "string", "minLength": 1 },
+        "execution_time": { "type": "string", "minLength": 1 }
+      }
+    },
+    "cost_model": {
+      "type": "object",
+      "required": ["fee_bps_per_side", "spread_bps_round_trip", "slippage_bps_round_trip", "safety_margin_bps"],
+      "properties": {
+        "fee_bps_per_side": { "type": "number", "minimum": 0 },
+        "spread_bps_round_trip": { "type": "number", "minimum": 0 },
+        "slippage_bps_round_trip": { "type": "number", "minimum": 0 },
+        "safety_margin_bps": { "type": "number", "minimum": 0 }
+      }
+    },
+    "holdout": {
+      "type": "object",
+      "required": ["sealed", "reuse_count"],
+      "properties": {
+        "sealed": { "type": "boolean" },
+        "reuse_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

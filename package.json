@@ -1,0 +1,23 @@
+{
+  "name": "quant-skills-monorepo",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "apps/*",
+    "packages/typescript/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "check": "bun run check:typescript && bun run check:python",
+    "check:typescript": "turbo run typecheck test",
+    "check:python": "uv run --package quant-research-cli python -m unittest discover -s apps/research-cli/tests",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "dev:report": "turbo run dev --filter=@quant/report-studio"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "turbo": "^2.10.5",
+    "typescript": "^7.0.2"
+  }
+}

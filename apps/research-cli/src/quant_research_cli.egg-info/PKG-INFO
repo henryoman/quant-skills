@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: quant-research-cli
+Version: 0.1.0
+Summary: Command-line application for registered quantitative research workflows
+Requires-Python: >=3.11
+Requires-Dist: quant-research
+Requires-Dist: quant-visuals

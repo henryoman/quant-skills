@@ -1,0 +1,11 @@
+pyproject.toml
+src/quant_research_cli.egg-info/PKG-INFO
+src/quant_research_cli.egg-info/SOURCES.txt
+src/quant_research_cli.egg-info/dependency_links.txt
+src/quant_research_cli.egg-info/entry_points.txt
+src/quant_research_cli.egg-info/requires.txt
+src/quant_research_cli.egg-info/top_level.txt
+src/research_cli/__init__.py
+src/research_cli/main.py
+tests/test_research_core.py
+tests/test_visual_contracts.py
